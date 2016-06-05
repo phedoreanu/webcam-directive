@@ -1,7 +1,11 @@
-# packaged angular-mocks
+# packaged angular-scenario
+
+This tool is now in maintenance mode. If you are starting a new project, please use
+[Protractor](https://github.com/angular/protractor). Existing projects using scenario runner are
+advised to migrate to protractor, as this tool is unlikely to receive updates.
 
 This repo is for distribution on `npm` and `bower`. The source for this module is in the
-[main AngularJS repo](https://github.com/angular/angular.js/tree/master/src/ngMock).
+[main AngularJS repo](https://github.com/angular/angular.js/tree/master/src/ngScenario).
 Please file issues and pull requests against that repo.
 
 ## Install
@@ -11,32 +15,26 @@ You can install this package either with `npm` or with `bower`.
 ### npm
 
 ```shell
-npm install angular-mocks
+npm install angular-scenario
 ```
 
-You can `require` ngMock modules:
+The files are then available at `node_modules/angular-scenario/`.
 
-```js
-var angular = require('angular');
-angular.module('myMod', [
-  require('angular-animate'),
-  require('angular-mocks/ngMock'),
-  require('angular-mocks/ngAnimateMock')
-]);
-```
+Note that this package is not in CommonJS format, so doing `require('angular-scenario')` will
+return `undefined`.
 
 ### bower
 
 ```shell
-bower install angular-mocks
+bower install angular-scenario
 ```
 
-The mocks are then available at `bower_components/angular-mocks/angular-mocks.js`.
+The files are then available at `bower_components/angular-scenario/`.
 
 ## Documentation
 
 Documentation is available on the
-[AngularJS docs site](https://docs.angularjs.org/guide/unit-testing).
+[AngularJS docs site](http://docs.angularjs.org/).
 
 ## License
 

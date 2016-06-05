@@ -1,10 +1,7 @@
-'use strict';
-// var lrSnippet = require('grunt-contrib-livereload/lib/utils').livereloadSnippet;
-var mountFolder = function (connect, dir) {
-  return connect.static(require('path').resolve(dir));
-};
 
 module.exports = function (grunt) {
+  'use strict';
+
   // load all grunt tasks
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
@@ -21,19 +18,12 @@ module.exports = function (grunt) {
   grunt.initConfig({
     yeoman: yeomanConfig,
     connect: {
-      options: {
-        port: 9000,
-        // Change this to '0.0.0.0' to access the server from outside.
-        hostname: 'localhost'
-      },
       test: {
         options: {
-          middleware: function (connect) {
-            return [
-              mountFolder(connect, '.tmp'),
-              mountFolder(connect, 'test')
-            ];
-          }
+          port: 9000,
+          // Change this to '0.0.0.0' to access the server from outside.
+          hostname: 'localhost',
+          base: 'app'
         }
       }
     },
@@ -64,7 +54,7 @@ module.exports = function (grunt) {
     karma: {
       unit: {
         configFile: 'karma.conf.js',
-        singleRun: true
+        singleRun: false
       },
       ci: {
         configFile: 'karma.conf.js',
@@ -123,7 +113,7 @@ module.exports = function (grunt) {
     'test',
     'concat',
     'uglify',
-    'clean:gen',
+    'clean:gen'
   ]);
 
   grunt.registerTask('default', ['test']);

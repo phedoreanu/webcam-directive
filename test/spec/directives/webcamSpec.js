@@ -19,7 +19,7 @@ describe('Directive: webcam', function () {
   beforeEach(module('webcam'));
 
   beforeEach(function createSpy () {
-    navigator.getMedia = mediaSpy = jasmine.createSpy('getMediaSpy');
+    navigator.mediaDevices.getUserMedia = mediaSpy = jasmine.createSpy('getMediaSpy');
     onStreamSpy = jasmine.createSpy('onStreamSpy');
     onErrorSpy = jasmine.createSpy('onErrorSpy');
     onSuccessSpy = jasmine.createSpy('onSuccessSpy');
@@ -50,10 +50,10 @@ describe('Directive: webcam', function () {
       expect(mediaSpy).toHaveBeenCalled();
       var args = mediaSpy.mostRecentCall.args;
       expect(args[0]).not.toBeNull();
-      expect(args[0].video).toBeTruthy();
+      expect(args[0].video).toBeDefined();
       expect(args[0].audio).toBeFalsy(); // Needs to be changed if audio support is added
-      expect(typeof args[1]).toBe('function');
-      expect(typeof args[2]).toBe('function');
+      // expect(typeof args[1]).toBe('function');
+      // expect(typeof args[2]).toBe('function');
     }
   );
 

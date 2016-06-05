@@ -4,21 +4,44 @@
  * (c) Jonas Hartmann http://jonashartmann.github.io/webcam-directive
  * License: MIT
  *
- * @version: 3.1.0
+ * @version: 3.1.1
  */
 'use strict';
 
-(function() {
-  // GetUserMedia is not yet supported by all browsers
-  // Until then, we need to handle the vendor prefixes
-  navigator.getMedia = ( navigator.getUserMedia ||
-                       navigator.webkitGetUserMedia ||
-                       navigator.mozGetUserMedia ||
-                       navigator.msGetUserMedia);
+(function () {
+  var promisifiedOldGUM = function (constraints) {
+    // First get ahold of getUserMedia, if present
+    var getUserMedia = (navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia);
+
+    // Some browsers just don't implement it - return a rejected promise with an error
+    // to keep a consistent interface
+    if (!getUserMedia) {
+      return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+    }
+
+    // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
+    return new Promise(function (resolve, reject) {
+      getUserMedia.call(navigator, constraints, resolve, reject);
+    });
+  };
+
+  // Older browsers might not implement mediaDevices at all, so we set an empty object first
+  if (navigator.mediaDevices === undefined) {
+    navigator.mediaDevices = {};
+  }
+
+  // Some browsers partially implement mediaDevices. We can't just assign an object
+  // with getUserMedia as it would overwrite existing properties.
+  // Here, we will just add the getUserMedia property if it's missing.
+  if (navigator.mediaDevices.getUserMedia === undefined) {
+    navigator.mediaDevices.getUserMedia = promisifiedOldGUM;
+  }
 
   // Checks if getUserMedia is available on the client browser
   window.hasUserMedia = function hasUserMedia() {
-    return navigator.getMedia ? true : false;
+    return navigator.mediaDevices.getUserMedia ? true : false;
   };
 })();
 
@@ -29,8 +52,7 @@ angular.module('webcam', [])
       restrict: 'E',
       replace: true,
       transclude: true,
-      scope:
-      {
+      scope: {
         onError: '&',
         onStream: '&',
         onStreaming: '&',
@@ -39,8 +61,8 @@ angular.module('webcam', [])
       },
       link: function postLink($scope, element) {
         var videoElem = null,
-            videoStream = null,
-            placeholder = null;
+          videoStream = null,
+          placeholder = null;
 
         $scope.config = $scope.config || {};
 
@@ -51,9 +73,9 @@ angular.module('webcam', [])
         };
 
         var onDestroy = function onDestroy() {
-          if (!!videoStream ) {
+          if (!!videoStream) {
             var checker = typeof videoStream.getVideoTracks === 'function';
-            if(videoStream.getVideoTracks && checker) {
+            if (videoStream.getVideoTracks && checker) {
               // get video track to call stop in it
               // videoStream.stop() is deprecated and may be removed in the
               // near future
@@ -104,7 +126,7 @@ angular.module('webcam', [])
 
           /* Call custom callback */
           if ($scope.onError) {
-            $scope.onError({err:err});
+            $scope.onError({err: err});
           }
 
           return;
@@ -130,21 +152,26 @@ angular.module('webcam', [])
 
           // Check the availability of getUserMedia across supported browsers
           if (!window.hasUserMedia()) {
-            onFailure({code:-1, msg: 'Browser does not support getUserMedia.'});
+            onFailure({code: -1, msg: 'Browser does not support getUserMedia.'});
             return;
           }
 
-          var mediaConstraint = { video: true, audio: false };
-          navigator.getMedia(mediaConstraint, onSuccess, onFailure);
-
+          var mediaConstraint = {
+            video: {
+              frameRate: {ideal: 24, max: 30},
+              facingMode: $scope.config.front ? 'user' : 'environment'
+            },
+            audio: false
+          };
+          navigator.mediaDevices.getUserMedia(mediaConstraint).then(onSuccess).catch(onFailure);
           /* Start streaming the webcam data when the video element can play
            * It will do it only once
            */
-          videoElem.addEventListener('canplay', function() {
+          videoElem.addEventListener('canplay', function () {
             if (!isStreaming) {
               var scale = width / videoElem.videoWidth;
               height = (videoElem.videoHeight * scale) ||
-                        $scope.config.videoHeight;
+                $scope.config.videoHeight;
               videoElem.setAttribute('width', width);
               videoElem.setAttribute('height', height);
               isStreaming = true;
